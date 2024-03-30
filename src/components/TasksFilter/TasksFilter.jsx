@@ -1,3 +1,4 @@
+import PropTypes from 'prop-types';
 import { Component } from 'react';
 import './TasksFilter.css';
 
@@ -39,3 +40,7 @@ export class TasksFilter extends Component {
     );
   }
 }
+
+TasksFilter.propTypes = {
+  filterTasks: PropTypes.func,
+};
