@@ -26,7 +26,6 @@ export default class CountdownTimer extends Component {
     const { time, isPlay, timerID } = this.state;
     if (prevState.isPlay !== isPlay) {
       if (time > 0 && isPlay == true) {
-        console.log('Изменение');
         clearInterval(timerID);
         this.timerID = setInterval(() => this.tick(), 1000);
       }
@@ -35,8 +34,6 @@ export default class CountdownTimer extends Component {
     if (prevProps.task.type !== this.props.task.type) {
       this.setState({ type: this.props.task.type });
     }
-
-    console.log(this.state.isPlay);
   }
 
   componentWillUnmount() {
@@ -52,7 +49,6 @@ export default class CountdownTimer extends Component {
   }
 
   tick() {
-    console.log('tick');
     const { isPlay, type } = this.state;
     const { taskID } = this.props;
     const task = getLocalStorage(`ID${taskID}`);
