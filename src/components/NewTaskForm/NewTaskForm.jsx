@@ -68,6 +68,7 @@ export class NewTaskForm extends Component {
             autoFocus
             onChange={this.onMinSecChange}
             value={this.state.sec}
+            required
           />
           <button type="submit"></button>
         </form>

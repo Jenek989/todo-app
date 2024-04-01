@@ -133,6 +133,7 @@ export class App extends Component {
             changeType={this.changeType}
             deleteTask={this.deleteTask}
             addChangedTask={this.addChangedTask}
+            tick={this.tick}
           />
           <Footer
             taskCount={taskCount}

@@ -9,6 +9,7 @@ export default class CountdownTimer extends Component {
     time: 0,
     type: 'active',
     isPlay: false,
+    isTimerRunning: false,
   };
   componentDidMount() {
     const { taskID } = this.props;
@@ -17,22 +18,29 @@ export default class CountdownTimer extends Component {
       time: task.timer,
       isPlay: task.isPlay,
       type: task.type,
+      timerID: task.timerID,
     });
   }
 
   componentDidUpdate(prevProps, prevState) {
-    const { time, isPlay } = this.state;
+    const { time, isPlay, timerID } = this.state;
     if (prevState.isPlay !== isPlay) {
-      if (time > 0 && isPlay == true) this.timerID = setInterval(() => this.tick(), 1000);
+      if (time > 0 && isPlay == true) {
+        console.log('Изменение');
+        clearInterval(timerID);
+        this.timerID = setInterval(() => this.tick(), 1000);
+      }
       if (!isPlay) clearInterval(this.timerID);
     }
     if (prevProps.task.type !== this.props.task.type) {
       this.setState({ type: this.props.task.type });
     }
+
+    console.log(this.state.isPlay);
   }
 
   componentWillUnmount() {
-    clearInterval(this.timerID);
+    if (!this.state.isPlay) clearInterval(this.timerID);
   }
 
   convertTimeFormat() {
@@ -45,15 +53,26 @@ export default class CountdownTimer extends Component {
 
   tick() {
     console.log('tick');
-    const { time, isPlay, type } = this.state;
+    const { isPlay, type } = this.state;
     const { taskID } = this.props;
-    if (time > 0 && type == 'active') {
-      const newTime = time - 1;
+    const task = getLocalStorage(`ID${taskID}`);
+    if (task.timer > 0 && type == 'active') {
+      const newTime = task.timer - 1;
       this.setState({ time: newTime });
-      setLocalStorage(`ID${taskID}`, { ...getLocalStorage(`ID${taskID}`), timer: newTime, isPlay });
+      setLocalStorage(`ID${taskID}`, {
+        ...getLocalStorage(`ID${taskID}`),
+        timer: newTime,
+        isPlay,
+        timerID: this.timerID,
+      });
     } else {
       clearInterval(this.timerID);
-      setLocalStorage(`ID${taskID}`, { ...getLocalStorage(`ID${taskID}`), isPlay: false });
+      setLocalStorage(`ID${taskID}`, {
+        ...getLocalStorage(`ID${taskID}`),
+        isPlay: false,
+        isTimerRunning: false,
+        timerID: null,
+      });
       this.setState({ isPlay: false, type: 'completed' });
     }
   }
@@ -64,7 +83,10 @@ export default class CountdownTimer extends Component {
     const { type, time } = this.state;
     this.setState(({ isPlay }) => {
       if (time > 0 && type == 'active') {
-        setLocalStorage(`ID${taskID}`, { ...getLocalStorage(`ID${taskID}`), isPlay: !isPlay });
+        setLocalStorage(`ID${taskID}`, {
+          ...getLocalStorage(`ID${taskID}`),
+          isPlay: !isPlay,
+        });
         return {
           isPlay: !isPlay,
         };

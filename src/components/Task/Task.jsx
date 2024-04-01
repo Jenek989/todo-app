@@ -35,7 +35,7 @@ export class Task extends Component {
 
   onKeyDown = (e) => {
     if (e.key === 'Enter') {
-      this.submitEditTask();
+      if (this.state.label) this.submitEditTask();
     }
   };
 
