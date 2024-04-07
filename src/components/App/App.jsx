@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import './App.css';
 
@@ -7,141 +7,106 @@ import { NewTaskForm } from '../NewTaskForm/NewTaskForm';
 import { TaskList } from '../TaskList/TaskList';
 import { getLocalStorage, setLocalStorage, getLocalStorageTasks } from '../../services/localStorage';
 
-export class App extends Component {
-  maxId = Math.floor(Math.random() * 500);
-  state = {
-    taskList: [],
-    filter: 'all',
+const App = () => {
+  const [taskList, setTaskList] = useState([]);
+  const [filter, setFilter] = useState('all');
+
+  useEffect(() => {
+    const tasksList = getLocalStorageTasks();
+    setTaskList(tasksList);
+  }, []);
+
+  const changeType = (id) => {
+    setTaskList((taskList) => {
+      return taskList.map((task) => {
+        if (task.id === id) {
+          if (task.type === 'active') {
+            return { ...task, type: 'completed' };
+          } else return { ...task, type: 'active' };
+        } else return task;
+      });
+    });
+    const task = getLocalStorage(`ID${id}`);
+    if (task.type == 'active') setLocalStorage(`ID${id}`, { ...task, type: 'completed' });
+    else setLocalStorage(`ID${id}`, { ...task, type: 'active' });
   };
 
-  componentDidMount() {
-    const taskList = getLocalStorageTasks();
-    this.setState({ taskList });
-  }
-
-  changeType = (id) => {
-    this.setState(
-      (state) => {
-        return {
-          taskList: state.taskList.map((task) => {
-            if (task.id === id) {
-              if (task.type === 'active') {
-                return { ...task, type: 'completed' };
-              } else return { ...task, type: 'active' };
-            } else return task;
-          }),
-        };
-      },
-      () => {
-        const task = getLocalStorage(`ID${id}`);
-        if (task.type == 'active') setLocalStorage(`ID${id}`, { ...task, type: 'completed' });
-        else setLocalStorage(`ID${id}`, { ...task, type: 'active' });
-      }
-    );
-  };
-
-  deleteTask = (e, id) => {
+  const deleteTask = (e, id) => {
     e.stopPropagation();
     localStorage.removeItem(`ID${id}`);
-    this.setState((state) => {
-      const newTaskList = state.taskList.filter((task) => task.id !== id);
-      return {
-        taskList: newTaskList,
-      };
-    });
+    setTaskList(taskList.filter((task) => task.id !== id));
   };
 
-  createNewTask = (label, timer = 0) => {
+  let maxId = Math.floor(Math.random() * 500);
+
+  const createNewTask = (label, timer = 0) => {
     return {
       type: 'active',
       description: label,
       timer,
       created: new Date().toString(),
-      id: this.maxId++,
+      id: maxId++,
       isPlay: false,
     };
   };
 
-  addNewTask = (label, timer) => {
-    const newItem = this.createNewTask(label, timer);
+  const addNewTask = (label, timer) => {
+    const newItem = createNewTask(label, timer);
     setLocalStorage(`ID${newItem.id}`, newItem);
-    this.setState(({ taskList }) => {
-      const newArray = [...taskList, newItem];
-      return {
-        taskList: newArray,
-      };
+    setTaskList((taskList) => {
+      return [...taskList, newItem];
     });
   };
 
-  addChangedTask = (id, label) => {
-    this.setState(
-      (state) => {
-        const newArr = state.taskList.map((task) => {
-          if (task.id === id) return { ...task, description: label };
-          return task;
-        });
-        return {
-          taskList: newArr,
-        };
-      },
-      () => {
-        const task = this.getFindedTask(id);
-        setLocalStorage(`ID${id}`, task);
-      }
-    );
+  const addChangedTask = (id, label) => {
+    setTaskList((prevTasks) => {
+      return prevTasks.map((task) => {
+        if (task.id === id) {
+          const changedTask = { ...task, description: label };
+          setLocalStorage(`ID${id}`, changedTask);
+          return changedTask;
+        }
+        return task;
+      });
+    });
   };
 
-  getFindedTask(id) {
-    return this.state.taskList.find(({ id: _id }) => id === _id);
-  }
-
-  filterTasks = (btnName) => {
-    this.setState({ filter: btnName });
+  const filterTasks = (btnName) => {
+    setFilter(btnName);
   };
 
-  getFilteredTasks = () => {
-    const { taskList, filter } = this.state;
-
+  const filteredTasks = useMemo(() => {
     if (filter === 'all') return taskList;
     return taskList.filter((task) => task.type === filter);
-  };
+  }, [filter, taskList]);
 
-  deleteCompletedTasks = () => {
-    const { taskList } = this.state;
+  const deleteCompletedTasks = () => {
     taskList.map(({ type, id }) => {
       if (type == 'completed') {
         localStorage.removeItem(`ID${id}`);
       }
     });
-    this.setState((state) => {
-      const updateTasks = state.taskList.filter(({ type }) => type !== 'completed');
-      return {
-        taskList: updateTasks,
-      };
-    });
+    setTaskList(taskList.filter(({ type }) => type !== 'completed'));
   };
 
-  render() {
-    const filteredTasks = this.getFilteredTasks();
-    const taskCount = this.state.taskList.filter((task) => task.type === 'active' || task.type === 'editing').length;
-    return (
-      <section className="todoapp">
-        <NewTaskForm addNewTask={this.addNewTask} />
-        <section className="main">
-          <TaskList
-            taskList={filteredTasks}
-            changeType={this.changeType}
-            deleteTask={this.deleteTask}
-            addChangedTask={this.addChangedTask}
-            tick={this.tick}
-          />
-          <Footer
-            taskCount={taskCount}
-            filterTasks={this.filterTasks}
-            deleteCompletedTasks={this.deleteCompletedTasks}
-          />
-        </section>
+  const taskCount = useMemo(() => {
+    return taskList.filter((task) => task.type === 'active' || task.type === 'editing').length;
+  }, [taskList]);
+
+  return (
+    <section className="todoapp">
+      <NewTaskForm addNewTask={addNewTask} />
+      <section className="main">
+        <TaskList
+          taskList={filteredTasks}
+          changeType={changeType}
+          deleteTask={deleteTask}
+          addChangedTask={addChangedTask}
+        />
+        <Footer taskCount={taskCount} filterTasks={filterTasks} deleteCompletedTasks={deleteCompletedTasks} />
       </section>
-    );
-  }
-}
+    </section>
+  );
+};
+
+export default App;

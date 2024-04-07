@@ -1,83 +1,63 @@
 import PropTypes from 'prop-types';
-import { Component } from 'react';
+import { useState } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 
-import CountdownTimer from '../CountdownTimer/CountdownTimer';
+import { CountdownTimer } from '../CountdownTimer/CountdownTimer';
 import './Task.css';
 
-export class Task extends Component {
-  state = {
-    isEditing: false,
-    label: this.props.task.description,
+export const Task = ({ task, changeType, deleteTask, addChangedTask }) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [label, setLabel] = useState(task.description);
+
+  const onLabelChange = (e) => {
+    setLabel(e.target.value);
   };
 
-  onLabelChange = (e) => {
-    this.setState({
-      label: e.target.value,
-    });
+  const submitEditTask = () => {
+    addChangedTask(task.id, label);
+    setIsEditing(false);
   };
 
-  submitEditTask = () => {
-    const prop = this.props;
-    prop.addChangedTask(prop.task.id, this.state.label);
-    this.setState({
-      isEditing: false,
-    });
+  const changeIsEditing = () => {
+    setIsEditing((isEditing) => !isEditing);
   };
 
-  changeIsEditing = () => {
-    this.setState((state) => {
-      return {
-        isEditing: !state.isEditing,
-      };
-    });
-  };
-
-  onKeyDown = (e) => {
+  const onKeyDown = (e) => {
     if (e.key === 'Enter') {
-      if (this.state.label) this.submitEditTask();
+      if (label) submitEditTask();
     }
   };
 
-  getTimeCreatedMessage = (time) => {
+  const getTimeCreatedMessage = (time) => {
     return `${formatDistanceToNow(new Date(time), {
       addSuffix: true,
       includeSeconds: true,
     })}`;
   };
 
-  render() {
-    const { task, changeType, deleteTask } = this.props;
-    return (
-      <li className={this.state.isEditing ? 'editing' : task.type}>
-        <div className="view">
-          <input
-            className="toggle"
-            type="checkbox"
-            onChange={() => changeType(task.id)}
-            checked={task.type === 'completed'}
-          />
-          <label>
-            <span className="title">{task.description}</span>
-            <CountdownTimer taskID={task.id} task={task} />
-            <span className="created">{this.getTimeCreatedMessage(task.created)}</span>
-          </label>
-          <button className="icon icon-edit" onClick={this.changeIsEditing}></button>
-          <button className="icon icon-destroy" onClick={(e) => deleteTask(e, task.id)}></button>
-        </div>
-        {this.state.isEditing && (
-          <input
-            type="text"
-            className="edit"
-            defaultValue={this.state.label}
-            onChange={this.onLabelChange}
-            onKeyDown={this.onKeyDown}
-          />
-        )}
-      </li>
-    );
-  }
-}
+  return (
+    <li className={isEditing ? 'editing' : task.type}>
+      <div className="view">
+        <input
+          className="toggle"
+          type="checkbox"
+          onChange={() => changeType(task.id)}
+          checked={task.type === 'completed'}
+        />
+        <label>
+          <span className="title">{task.description}</span>
+          <CountdownTimer taskID={task.id} task={task} />
+          <span className="created">{getTimeCreatedMessage(task.created)}</span>
+        </label>
+        <button className="icon icon-edit" onClick={changeIsEditing}></button>
+        <button className="icon icon-destroy" onClick={(e) => deleteTask(e, task.id)}></button>
+      </div>
+      {isEditing && (
+        <input type="text" className="edit" defaultValue={label} onChange={onLabelChange} onKeyDown={onKeyDown} />
+      )}
+    </li>
+  );
+};
 
 Task.propTypes = {
   task: PropTypes.shape({

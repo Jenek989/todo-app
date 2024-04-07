@@ -1,45 +1,35 @@
 import PropTypes from 'prop-types';
-import { Component } from 'react';
+import { useState } from 'react';
 import './TasksFilter.css';
 
-export class TasksFilter extends Component {
-  state = {
-    selButton: 'all',
+export const TasksFilter = ({ filterTasks }) => {
+  const [selButton, setSelButton] = useState('all');
+
+  const onClickButton = (btnName) => {
+    filterTasks(btnName);
+    setSelButton(btnName);
   };
 
-  onClickButton = (btnName) => {
-    this.props.filterTasks(btnName);
-    this.setState({
-      selButton: btnName,
-    });
-  };
-
-  render() {
-    const { selButton } = this.state;
-    return (
-      <ul className="filters">
-        <li>
-          <button className={selButton === 'all' ? 'selected' : ''} onClick={() => this.onClickButton('all')}>
-            All
-          </button>
-        </li>
-        <li>
-          <button className={selButton === 'active' ? 'selected' : ''} onClick={() => this.onClickButton('active')}>
-            Active
-          </button>
-        </li>
-        <li>
-          <button
-            className={selButton === 'completed' ? 'selected' : ''}
-            onClick={() => this.onClickButton('completed')}
-          >
-            Completed
-          </button>
-        </li>
-      </ul>
-    );
-  }
-}
+  return (
+    <ul className="filters">
+      <li>
+        <button className={selButton === 'all' ? 'selected' : ''} onClick={() => onClickButton('all')}>
+          All
+        </button>
+      </li>
+      <li>
+        <button className={selButton === 'active' ? 'selected' : ''} onClick={() => onClickButton('active')}>
+          Active
+        </button>
+      </li>
+      <li>
+        <button className={selButton === 'completed' ? 'selected' : ''} onClick={() => onClickButton('completed')}>
+          Completed
+        </button>
+      </li>
+    </ul>
+  );
+};
 
 TasksFilter.propTypes = {
   filterTasks: PropTypes.func,
