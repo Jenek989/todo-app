@@ -1,82 +1,47 @@
 import { useState, useEffect } from 'react';
 import PropTypes from 'prop-types';
 
-import { getLocalStorage, setLocalStorage } from '../../services/localStorage';
 import './CountdownTimer.css';
 
-export const CountdownTimer = ({ taskID }) => {
-  const [time, setTime] = useState(0);
-  const [type, setType] = useState('active');
-  const [isPlay, setIsPlay] = useState(false);
-  const [timerID, setTimerID] = useState(null);
+export const CountdownTimer = ({ task, updateTimer }) => {
+  const [time, setTime] = useState(task.timer);
+  const [type, setType] = useState(task.type);
+  const [isPlay, setIsPlay] = useState(task.isPlay);
 
   useEffect(() => {
-    const storedTask = getLocalStorage(`ID${taskID}`);
-    setTime(storedTask.timer);
-    setType(storedTask.type);
-    setIsPlay(storedTask.isPlay);
-    setTimerID(storedTask.timerID);
+    setType(task.type);
+  }, [task]);
 
+  useEffect(() => {
+    if (!isPlay || type === 'completed') return;
+    const id = setInterval(() => {
+      setTime((t) => {
+        const newTime = Math.max(0, t - 1);
+        updateTimer(newTime, task.id, id, isPlay);
+        return newTime;
+      });
+    }, 1000);
     return () => {
-      if (!isPlay && timerID) {
-        console.log('Timer stopped');
-        clearInterval(timerID);
-        setTimerID(null);
-      }
+      console.log('удалив');
+      clearInterval(id);
     };
-  }, [taskID]);
+  }, [isPlay, type]);
 
   useEffect(() => {
-    if (time > 0 && isPlay && !timerID) {
-      console.log('New timer created');
-      const newTimerID = setInterval(() => tick(), 1000);
-      setTimerID(newTimerID);
-      setLocalStorage(`ID${taskID}`, {
-        ...getLocalStorage(`ID${taskID}`),
-        isPlay: true,
-        timerID: newTimerID,
-      });
-    } else if ((!isPlay || time <= 0) && timerID) {
-      console.log('Timer stopped');
-      clearInterval(timerID);
-      setTimerID(null);
+    if (time <= 0 || type === 'completed') {
+      setIsPlay((isPlay) => !isPlay);
     }
-  }, [time, isPlay, timerID, taskID]);
+  }, [time, type]);
 
-  const tick = () => {
-    const storedTask = getLocalStorage(`ID${taskID}`);
-    if (storedTask.timer > 0 && type === 'active') {
-      const newTime = storedTask.timer - 1;
-      setLocalStorage(`ID${taskID}`, {
-        ...storedTask,
-        timer: newTime,
-      });
-      setTime(newTime);
-    } else {
-      clearInterval(timerID);
-      setTimerID(null);
-      setLocalStorage(`ID${taskID}`, {
-        ...storedTask,
-        isPlay: false,
-      });
-      setIsPlay(false);
-      setType('completed');
-    }
-  };
+  useEffect(() => {
+    if (isPlay) return;
+    updateTimer(time, task.id, null, false);
+  }, [isPlay]);
 
   const changePlayButton = (e) => {
     e.stopPropagation();
-    if (time > 0 && type === 'active') {
-      setIsPlay((prevIsPlay) => {
-        const updatedIsPlay = !prevIsPlay;
-        setLocalStorage(`ID${taskID}`, {
-          ...getLocalStorage(`ID${taskID}`),
-          isPlay: updatedIsPlay,
-          timerID: updatedIsPlay ? timerID : null,
-        });
-        return updatedIsPlay;
-      });
-    }
+    if (time <= 0) return;
+    setIsPlay((isPlay) => !isPlay);
   };
 
   const convertTimeFormat = () => {
@@ -86,7 +51,12 @@ export const CountdownTimer = ({ taskID }) => {
     return `${min}:${sec}`;
   };
 
-  const playButtonClass = isPlay && type === 'active' ? 'icon icon-pause' : 'icon icon-play';
+  const playButtonClass =
+    type === 'completed' || !time
+      ? 'icon icon-hide'
+      : isPlay && type === 'active'
+        ? 'icon icon-pause'
+        : 'icon icon-play';
   const timerFormatted = convertTimeFormat();
 
   return (
@@ -98,5 +68,10 @@ export const CountdownTimer = ({ taskID }) => {
 };
 
 CountdownTimer.propTypes = {
-  taskID: PropTypes.number.isRequired,
+  task: PropTypes.object,
+  updateTimer: PropTypes.func,
+};
+
+CountdownTimer.defaultProps = {
+  task: {},
 };

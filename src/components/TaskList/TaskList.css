@@ -152,6 +152,10 @@
   content: '▶';
 }
 
+.icon-hide {
+  display: none;
+}
+
 .todo-list li .edit {
   display: none;
 }

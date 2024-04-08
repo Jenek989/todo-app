@@ -5,7 +5,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { CountdownTimer } from '../CountdownTimer/CountdownTimer';
 import './Task.css';
 
-export const Task = ({ task, changeType, deleteTask, addChangedTask }) => {
+export const Task = ({ task, changeType, deleteTask, addChangedTask, updateTimer }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [label, setLabel] = useState(task.description);
 
@@ -46,7 +46,7 @@ export const Task = ({ task, changeType, deleteTask, addChangedTask }) => {
         />
         <label>
           <span className="title">{task.description}</span>
-          <CountdownTimer taskID={task.id} task={task} />
+          <CountdownTimer task={task} updateTimer={updateTimer} />
           <span className="created">{getTimeCreatedMessage(task.created)}</span>
         </label>
         <button className="icon icon-edit" onClick={changeIsEditing}></button>
@@ -70,6 +70,7 @@ Task.propTypes = {
   deleteCompletedTasks: PropTypes.func,
   changeType: PropTypes.func,
   deleteTask: PropTypes.func,
+  updateTimer: PropTypes.func,
 };
 
 Task.defaultProps = {
