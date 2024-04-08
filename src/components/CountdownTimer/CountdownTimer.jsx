@@ -22,7 +22,6 @@ export const CountdownTimer = ({ task, updateTimer }) => {
       });
     }, 1000);
     return () => {
-      console.log('удалив');
       clearInterval(id);
     };
   }, [isPlay, type]);
