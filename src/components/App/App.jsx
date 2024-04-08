@@ -13,14 +13,12 @@ const App = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    console.log('получение данных');
     const tasksList = getLocalStorage('taskList');
     setTaskList(tasksList);
     setLoading(false);
   }, []);
 
   useEffect(() => {
-    console.log('Отправка данных');
     if (!loading) setLocalStorage('taskList', taskList);
   }, [taskList, loading]);
 
@@ -95,7 +93,6 @@ const App = () => {
   };
 
   const taskCount = useMemo(() => {
-    console.log(taskList);
     return taskList.filter((task) => task.type === 'active' || task.type === 'editing').length;
   }, [taskList]);
 
