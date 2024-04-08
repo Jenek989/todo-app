@@ -5,35 +5,49 @@ import './App.css';
 import { Footer } from '../Footer/Footer';
 import { NewTaskForm } from '../NewTaskForm/NewTaskForm';
 import { TaskList } from '../TaskList/TaskList';
-import { getLocalStorage, setLocalStorage, getLocalStorageTasks } from '../../services/localStorage';
+import { getLocalStorage, setLocalStorage } from '../../services/localStorage';
 
 const App = () => {
   const [taskList, setTaskList] = useState([]);
   const [filter, setFilter] = useState('all');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const tasksList = getLocalStorageTasks();
+    console.log('получение данных');
+    const tasksList = getLocalStorage('taskList');
     setTaskList(tasksList);
+    setLoading(false);
   }, []);
+
+  useEffect(() => {
+    console.log('Отправка данных');
+    if (!loading) setLocalStorage('taskList', taskList);
+  }, [taskList, loading]);
+
+  const updateTimer = (timer, id, timerID, isPlay) => {
+    setTaskList((tasks) => {
+      const index = tasks.findIndex((item) => item.id === id);
+      let copyArrData = [...tasks];
+      copyArrData[index].timer = timer;
+      copyArrData[index].timerID = timerID;
+      copyArrData[index].isPlay = isPlay;
+      return copyArrData;
+    });
+  };
 
   const changeType = (id) => {
     setTaskList((taskList) => {
       return taskList.map((task) => {
         if (task.id === id) {
-          if (task.type === 'active') {
-            return { ...task, type: 'completed' };
-          } else return { ...task, type: 'active' };
+          if (task.type === 'active') return { ...task, type: 'completed' };
+          else return { ...task, type: 'active' };
         } else return task;
       });
     });
-    const task = getLocalStorage(`ID${id}`);
-    if (task.type == 'active') setLocalStorage(`ID${id}`, { ...task, type: 'completed' });
-    else setLocalStorage(`ID${id}`, { ...task, type: 'active' });
   };
 
   const deleteTask = (e, id) => {
     e.stopPropagation();
-    localStorage.removeItem(`ID${id}`);
     setTaskList(taskList.filter((task) => task.id !== id));
   };
 
@@ -47,12 +61,12 @@ const App = () => {
       created: new Date().toString(),
       id: maxId++,
       isPlay: false,
+      timerID: null,
     };
   };
 
   const addNewTask = (label, timer) => {
     const newItem = createNewTask(label, timer);
-    setLocalStorage(`ID${newItem.id}`, newItem);
     setTaskList((taskList) => {
       return [...taskList, newItem];
     });
@@ -61,11 +75,7 @@ const App = () => {
   const addChangedTask = (id, label) => {
     setTaskList((prevTasks) => {
       return prevTasks.map((task) => {
-        if (task.id === id) {
-          const changedTask = { ...task, description: label };
-          setLocalStorage(`ID${id}`, changedTask);
-          return changedTask;
-        }
+        if (task.id === id) return { ...task, description: label };
         return task;
       });
     });
@@ -81,15 +91,11 @@ const App = () => {
   }, [filter, taskList]);
 
   const deleteCompletedTasks = () => {
-    taskList.map(({ type, id }) => {
-      if (type == 'completed') {
-        localStorage.removeItem(`ID${id}`);
-      }
-    });
     setTaskList(taskList.filter(({ type }) => type !== 'completed'));
   };
 
   const taskCount = useMemo(() => {
+    console.log(taskList);
     return taskList.filter((task) => task.type === 'active' || task.type === 'editing').length;
   }, [taskList]);
 
@@ -102,6 +108,7 @@ const App = () => {
           changeType={changeType}
           deleteTask={deleteTask}
           addChangedTask={addChangedTask}
+          updateTimer={updateTimer}
         />
         <Footer taskCount={taskCount} filterTasks={filterTasks} deleteCompletedTasks={deleteCompletedTasks} />
       </section>
