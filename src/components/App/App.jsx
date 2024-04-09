@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { customAlphabet } from 'nanoid';
 
 import './App.css';
 
@@ -11,6 +12,9 @@ const App = () => {
   const [taskList, setTaskList] = useState([]);
   const [filter, setFilter] = useState('all');
   const [loading, setLoading] = useState(true);
+
+  let nanoid = customAlphabet('1234567890', 3);
+  let maxId = nanoid();
 
   useEffect(() => {
     const tasksList = getLocalStorage('taskList');
@@ -48,8 +52,6 @@ const App = () => {
     e.stopPropagation();
     setTaskList(taskList.filter((task) => task.id !== id));
   };
-
-  let maxId = Math.floor(Math.random() * 500);
 
   const createNewTask = (label, timer = 0) => {
     return {
