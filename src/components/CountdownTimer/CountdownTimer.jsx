@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 
 import './CountdownTimer.css';
 
-export const CountdownTimer = ({ task, updateTimer }) => {
+export const CountdownTimer = ({ task, updateTimer, loading }) => {
   const [time, setTime] = useState(task.timer);
   const [type, setType] = useState(task.type);
   const [isPlay, setIsPlay] = useState(task.isPlay);
@@ -12,7 +12,10 @@ export const CountdownTimer = ({ task, updateTimer }) => {
   useEffect(() => {
     setTime(task.timer);
     setType(task.type);
-    setIsPlay(task.isPlay);
+    if (loading) {
+      setIsPlay(false);
+      updateTimer(time, task.id, null, false);
+    } else setIsPlay(task.isPlay);
   }, [task.type, task.timer, task.isPlay]);
 
   useEffect(() => {

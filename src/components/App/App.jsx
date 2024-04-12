@@ -19,7 +19,7 @@ const App = () => {
   useEffect(() => {
     const tasksList = getLocalStorage('taskList');
     setTaskList(tasksList);
-    setLoading(false);
+    setTimeout(() => setLoading(false), 100);
   }, []);
 
   useEffect(() => {
@@ -108,6 +108,7 @@ const App = () => {
           deleteTask={deleteTask}
           addChangedTask={addChangedTask}
           updateTimer={updateTimer}
+          loading={loading}
         />
         <Footer taskCount={taskCount} filterTasks={filterTasks} deleteCompletedTasks={deleteCompletedTasks} />
       </section>

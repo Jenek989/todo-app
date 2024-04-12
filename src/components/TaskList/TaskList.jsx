@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 import { Task } from '../Task/Task';
 import './TaskList.css';
 
-export const TaskList = ({ taskList, changeType, deleteTask, addChangedTask, updateTimer }) => {
+export const TaskList = ({ taskList, changeType, deleteTask, addChangedTask, updateTimer, loading }) => {
   return (
     <ul className="todo-list">
       {taskList.map((task) => (
@@ -14,6 +14,7 @@ export const TaskList = ({ taskList, changeType, deleteTask, addChangedTask, upd
           deleteTask={deleteTask}
           addChangedTask={addChangedTask}
           updateTimer={updateTimer}
+          loading={loading}
         />
       ))}
     </ul>
