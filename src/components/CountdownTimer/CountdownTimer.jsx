@@ -7,40 +7,39 @@ export const CountdownTimer = ({ task, updateTimer }) => {
   const [time, setTime] = useState(task.timer);
   const [type, setType] = useState(task.type);
   const [isPlay, setIsPlay] = useState(task.isPlay);
+  const [timerId, setTimerId] = useState(task.timerID);
 
   useEffect(() => {
+    setTime(task.timer);
     setType(task.type);
-  }, [task]);
+    setIsPlay(task.isPlay);
+  }, [task.type, task.timer, task.isPlay]);
 
   useEffect(() => {
-    if (!isPlay || type === 'completed') return;
-    const id = setInterval(() => {
-      setTime((t) => {
-        const newTime = Math.max(0, t - 1);
-        updateTimer(newTime, task.id, id, isPlay);
-        return newTime;
-      });
-    }, 1000);
-    return () => {
-      clearInterval(id);
-    };
-  }, [isPlay, type]);
-
-  useEffect(() => {
+    if (!isPlay && type === 'completed') return;
     if (time <= 0 || type === 'completed') {
       setIsPlay((isPlay) => !isPlay);
+      clearInterval(timerId);
+      updateTimer(task.timer, task.id, null, false);
     }
   }, [time, type]);
 
-  useEffect(() => {
-    if (isPlay) return;
-    updateTimer(time, task.id, null, false);
-  }, [isPlay]);
-
   const changePlayButton = (e) => {
     e.stopPropagation();
-    if (time <= 0) return;
-    setIsPlay((isPlay) => !isPlay);
+    if (time <= 0 || type === 'completed') return;
+    if (isPlay) {
+      clearInterval(timerId);
+      setTimerId(null);
+      setIsPlay(false);
+      updateTimer(time, task.id, null, false);
+    } else {
+      const id = setInterval(() => {
+        const newTime = Math.max(0, task.timer - 1);
+        updateTimer(newTime, task.id, id, true);
+      }, 1000);
+      setTimerId(id);
+      setIsPlay(true);
+    }
   };
 
   const convertTimeFormat = () => {

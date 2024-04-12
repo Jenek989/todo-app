@@ -28,7 +28,7 @@ const App = () => {
 
   const updateTimer = (timer, id, timerID, isPlay) => {
     setTaskList((tasks) => {
-      const index = tasks.findIndex((item) => item.id === id);
+      const index = tasks.findIndex((task) => task.id === id);
       let copyArrData = [...tasks];
       copyArrData[index].timer = timer;
       copyArrData[index].timerID = timerID;
@@ -38,8 +38,8 @@ const App = () => {
   };
 
   const changeType = (id) => {
-    setTaskList((taskList) => {
-      return taskList.map((task) => {
+    setTaskList((tasks) => {
+      return tasks.map((task) => {
         if (task.id === id) {
           if (task.type === 'active') return { ...task, type: 'completed' };
           else return { ...task, type: 'active' };
